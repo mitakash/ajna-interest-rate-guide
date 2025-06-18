@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Ajna Pool Interest Rate Control Guide</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        h2 {
+            color: #34495e;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+        
+        h3 {
+            color: #2980b9;
+            margin-top: 30px;
+        }
+        
+        .strategy-box {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #27ae60;
+        }
+        
+        .warning-box {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #e74c3c;
+        }
+        
+        .equation-box {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            font-size: 1.1em;
+        }
+        
+        .chart-container {
+            background: black;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .zone-legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            color: white;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        
+        .increase-zone { background-color: rgba(0, 100, 255, 0.8); }
+        .decrease-zone { background-color: rgba(220, 20, 60, 0.8); }
+        .no-change-zone { background-color: rgba(255, 215, 0, 0.9); }
+        
+        .controls {
+            background: #f1f3f4;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        
+        .control-group label {
+            font-weight: bold;
+            min-width: 100px;
+        }
+        
+        .control-group input {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            width: 100px;
+        }
+        
+        .position-indicator {
+            width: 12px;
+            height: 12px;
+            background: #e74c3c;
+            border: 2px solid white;
+            border-radius: 50%;
+            position: absolute;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .math {
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+        }
+        
+        .help-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 40px 0 20px 0;
+            text-align: center;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .help-content h3 {
+            color: white;
+            margin: 0 0 15px 0;
+            font-size: 1.5em;
+            border: none;
+            padding: 0;
+        }
+        
+        .help-content p {
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0 0 25px 0;
+            font-size: 1.1em;
+        }
+        
+        .help-button {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 30px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+        }
+        
+        .help-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Advanced Ajna Pool Interest Rate Control Guide</h1>
+        
+        <h2>📊 Understanding the Rate Control Mechanism</h2>
+        <p>Ajna's interest rate algorithm uses two key metrics to determine when rates should change:</p>
+        <ul>
+            <li><strong>MAU (Meaningful Actual Utilization):</strong> 12-hour EMA of debt / 12-hour EMA of meaningful deposit</li>
+            <li><strong>TU (Target Utilization):</strong> 3.5-day EMA of debt / 3.5-day EMA of (LUP × total collateral)</li>
+        </ul>
+
+        <h2>🔢 Mathematical Equations for Rate Zones</h2>
+        
+        <h3>Rate Increase Zone</h3>
+        <div class="equation-box">
+            <div class="math">4(TU - 1.02 × MAU) < (TU + 1.02 × MAU - 1)² - 1</div>
+        </div>
+        
+        <h3>Rate Decrease Zone</h3>
+        <div class="equation-box">
+            <div class="math">4(TU - MAU) > -(TU + MAU - 1)² + 1</div>
+        </div>
+        
+        <h3>No Change Zone</h3>
+        <div class="equation-box">
+            Neither increase nor decrease conditions are met
+        </div>
+
+        <h2>📈 Interactive Rate Control Visualization</h2>
+        <div class="chart-container">
+            <canvas id="rateChart" width="400" height="400"></canvas>
+            <div class="zone-legend">
+                <div class="legend-item">
+                    <div class="legend-color increase-zone"></div>
+                    <span>Increase Rates</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color no-change-zone"></div>
+                    <span>No Change</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color decrease-zone"></div>
+                    <span>Decrease Rates</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <h3>🎮 Interactive Controls</h3>
+            <div class="control-group">
+                <label>Current MAU:</label>
+                <input type="range" id="mauSlider" min="0" max="1" step="0.01" value="0.6">
+                <span id="mauValue">0.60</span>
+            </div>
+            <div class="control-group">
+                <label>Current TU:</label>
+                <input type="range" id="tuSlider" min="0" max="1" step="0.01" value="0.7">
+                <span id="tuValue">0.70</span>
+            </div>
+            <div class="control-group">
+                <label>Current Zone:</label>
+                <span id="currentZone" style="font-weight: bold; color: #e74c3c;">No Change</span>
+            </div>
+        </div>
+
+        <h2>🚀 Advanced Strategy: Borrower-Initiated Rate Increases</h2>
+        
+        <div class="strategy-box">
+            <h3>💡 The Overcollateralization Strategy</h3>
+            <p><strong>Objective:</strong> Increase interest rates to attract more lenders to the pool</p>
+            
+            <h4>How it Works:</h4>
+            <ol>
+                <li><strong>Increase Borrowing:</strong> Borrow as much quote token as possible</li>
+                <li><strong>Overcollateralize Heavily:</strong> Add significantly more collateral than required</li>
+                <li><strong>Impact on Metrics:</strong>
+                    <ul>
+                        <li>↑ <strong>MAU increases</strong> (more debt relative to meaningful deposit)</li>
+                        <li>↓ <strong>TU decreases</strong> (more total collateral relative to debt)</li>
+                    </ul>
+                </li>
+                <li><strong>Result:</strong> Pushes the pool toward the "Increase Rates" zone</li>
+            </ol>
+        </div>
+
+        <div class="warning-box">
+            <h3>⚠️ Risk Considerations</h3>
+            <ul>
+                <li><strong>Capital Efficiency:</strong> Requires significant collateral overcollateralization</li>
+                <li><strong>Interest Costs:</strong> Must pay interest on borrowed funds</li>
+                <li><strong>Liquidation Risk:</strong> Even with overcollateralization, market volatility poses risks</li>
+                <li><strong>Timing:</strong> Rate changes have 12-hour minimum intervals</li>
+            </ul>
+        </div>
+
+        <h2>📋 Complete Strategy Matrix</h2>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Goal</th>
+                    <th>Lender Actions</th>
+                    <th>Borrower Actions</th>
+                    <th>Effect on MAU</th>
+                    <th>Effect on TU</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Increase Rates</strong></td>
+                    <td>Withdraw deposits</td>
+                    <td>Remove collateral OR borrow more</td>
+                    <td>↑ Increase</td>
+                    <td>↑ Increase</td>
+                </tr>
+                <tr>
+                    <td><strong>Increase Rates (Advanced)</strong></td>
+                    <td>Minimal action</td>
+                    <td>Borrow max + overcollateralize heavily</td>
+                    <td>↑ Increase</td>
+                    <td>↓ Decrease</td>
+                </tr>
+                <tr>
+                    <td><strong>Decrease Rates</strong></td>
+                    <td>Add significant deposits</td>
+                    <td>Add collateral OR repay debt</td>
+                    <td>↓ Decrease</td>
+                    <td>↓ Decrease</td>
+                </tr>
+                <tr>
+                    <td><strong>Maintain Rates</strong></td>
+                    <td>Balanced deposits</td>
+                    <td>Balanced borrowing/collateral</td>
+                    <td>→ Stable</td>
+                    <td>→ Stable</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>🎯 Optimal Positioning Strategy</h2>
+        
+        <div class="strategy-box">
+            <h3>Target Zone: MAU ~95%, TU ~95%</h3>
+            <p>At this position, small actions can easily trigger rate changes:</p>
+            <ul>
+                <li><strong>Rate Increase:</strong> Lenders reduce deposits by 1-3%</li>
+                <li><strong>Rate Decrease:</strong> Lenders increase deposits by 10-20%</li>
+            </ul>
+            
+            <h4>Advanced Borrower Positioning:</h4>
+            <ul>
+                <li><strong>Maintain high MAU:</strong> Keep debt levels high relative to meaningful deposits</li>
+                <li><strong>Control TU through collateral:</strong> Use collateral additions/removals for fine-tuning</li>
+                <li><strong>Timing considerations:</strong> Account for 12-hour rate change intervals and EMA smoothing</li>
+            </ul>
+        </div>
+
+        <h2>🧮 Detailed MAU and TU Calculations</h2>
+        
+        <h3>MAU (Meaningful Actual Utilization) Calculation</h3>
+        
+        <div class="equation-box">
+            <strong>MAU = 12-hour EMA of Debt / 12-hour EMA of Meaningful Deposit</strong><br><br>
+            <strong>Where:</strong><br>
+            Meaningful Deposit = Deposit above DWATP - Debt in Auction<br><br>
+            <strong>DWATP (Debt-Weighted Average Threshold Price):</strong><br>
+            DWATP = (∑ D<sub>i</sub> × TP<sub>i</sub>) / ∑ D<sub>i</sub><br><br>
+            <strong>In terms of t₀-equivalent debt:</strong><br>
+            DWATP = b × (∑ T<sub>i</sub>² / C<sub>i</sub>) / ∑ T<sub>i</sub>
+        </div>
+        
+        <h3>TU (Target Utilization) Calculation</h3>
+        
+        <div class="equation-box">
+            <strong>TU = 3.5-day EMA of Numerator / 3.5-day EMA of Denominator</strong><br><br>
+            <strong>Where:</strong><br>
+            Numerator = b × ∑ T<sub>i</sub>² / C<sub>i</sub><br>
+            Denominator = LUP × ∑ T<sub>i</sub><br><br>
+            <strong>This represents:</strong><br>
+            TU = Debt-weighted collateralization relative to LUP
+        </div>
+
+        <h3>EMA Update Formulas</h3>
+        
+        <div class="equation-box">
+            <strong>MAU EMA Lambda:</strong> λ = exp(-Δt / 12 hours)<br>
+            <strong>TU EMA Lambda:</strong> λ = exp(-Δt × ln(2) / 3.5 days)<br><br>
+            <strong>EMA Update:</strong><br>
+            EMA<sub>t+Δt</sub>(x) = λ × EMA<sub>t</sub>(x) + (1 - λ) × x<sub>t</sub>
+        </div>
+
+        <h2>⏰ Timing and EMA Considerations</h2>
+        
+        <p><strong>Key Timing Insights:</strong></p>
+        <ul>
+            <li>MAU responds faster to changes (12-hour EMA vs 3.5-day EMA for TU)</li>
+            <li>TU changes slowly, providing stability against short-term manipulation</li>
+            <li>Rate changes can only occur every 12 hours minimum</li>
+            <li>EMA smoothing means sustained actions are more effective than single large moves</li>
+        </ul>
+
+        <h2>🔍 Implementation Example</h2>
+        
+        <div class="strategy-box">
+            <h3>Scenario: Pool Needs Higher Rates to Attract Lenders</h3>
+            
+            <h4>Current State:</h4>
+            <ul>
+                <li>MAU: 60% (moderate utilization)</li>
+                <li>TU: 70% (moderate target utilization)</li>
+                <li>Current zone: No change</li>
+            </ul>
+            
+            <h4>Borrower Strategy:</h4>
+            <ol>
+                <li><strong>Step 1:</strong> Borrow additional 40% of available liquidity</li>
+                <li><strong>Step 2:</strong> Add 150% more collateral than required for new debt</li>
+                <li><strong>Step 3:</strong> Monitor MAU increase (to ~85%) and TU decrease (to ~55%)</li>
+                <li><strong>Step 4:</strong> Result - Pool moves into "Increase Rates" zone</li>
+                <li><strong>Step 5:</strong> Wait for next rate update (12+ hours)</li>
+            </ol>
+            
+            <h4>Expected Outcome:</h4>
+            <p>Interest rates increase by 10%, making the pool more attractive to new lenders</p>
+        </div>
+
+        <h2>🧮 Worked Examples</h2>
+        
+        <div class="strategy-box">
+            <h3>Example 1: MAU Calculation</h3>
+            
+            <h4>Pool State:</h4>
+            <ul>
+                <li><strong>Total Pool Debt:</strong> 1,000,000 USDC</li>
+                <li><strong>Borrower Inflator (b):</strong> 1.05</li>
+                <li><strong>Loans in Pool:</strong>
+                    <ul>
+                        <li>Loan 1: T₁ = 190,476 USDC, C₁ = 100 ETH</li>
+                        <li>Loan 2: T₂ = 95,238 USDC, C₂ = 75 ETH</li>
+                        <li>Loan 3: T₃ = 238,095 USDC, C₃ = 150 ETH</li>
+                    </ul>
+                </li>
+            </ul>
+            
+            <h4>Step 1: Calculate DWATP</h4>
+            <div class="equation-box">
+                DWATP = b × (∑ T<sub>i</sub>² / C<sub>i</sub>) / ∑ T<sub>i</sub><br><br>
+                
+                ∑ T<sub>i</sub>² / C<sub>i</sub> = (190,476² / 100) + (95,238² / 75) + (238,095² / 150)<br>
+                = 362,912,902 + 120,833,601 + 378,095,238<br>
+                = 861,841,741<br><br>
+                
+                ∑ T<sub>i</sub> = 190,476 + 95,238 + 238,095 = 523,809<br><br>
+                
+                DWATP = 1.05 × (861,841,741 / 523,809) = <strong>1,727 USDC/ETH</strong>
+            </div>
+            
+            <h4>Step 2: Calculate Meaningful Deposit</h4>
+            <ul>
+                <li>Total deposits above 1,727 USDC/ETH price: 1,200,000 USDC</li>
+                <li>Debt in auction: 0 USDC</li>
+                <li><strong>Meaningful Deposit = 1,200,000 USDC</strong></li>
+            </ul>
+            
+            <h4>Step 3: Calculate MAU</h4>
+            <div class="equation-box">
+                MAU = 12-hour EMA of Debt / 12-hour EMA of Meaningful Deposit<br><br>
+                
+                Assuming current values:<br>
+                Current Debt = 1,000,000 USDC<br>
+                Current Meaningful Deposit = 1,200,000 USDC<br><br>
+                
+                <strong>Instantaneous MAU = 1,000,000 / 1,200,000 = 0.833 (83.3%)</strong>
+            </div>
+        </div>
+
+        <div class="strategy-box">
+            <h3>Example 2: TU Calculation</h3>
+            
+            <h4>Using the same pool state:</h4>
+            <ul>
+                <li><strong>LUP:</strong> 1,900 USDC/ETH</li>
+                <li><strong>Total Collateral:</strong> 325 ETH</li>
+            </ul>
+            
+            <h4>Step 1: Calculate TU Components</h4>
+            <div class="equation-box">
+                Numerator = b × ∑ T<sub>i</sub>² / C<sub>i</sub><br>
+                = 1.05 × 861,841,741 = <strong>904,933,828</strong><br><br>
+                
+                Denominator = LUP × ∑ T<sub>i</sub><br>
+                = 1,900 × 523,809 = <strong>995,237,100</strong>
+            </div>
+            
+            <h4>Step 2: Calculate TU</h4>
+            <div class="equation-box">
+                TU = 3.5-day EMA of Numerator / 3.5-day EMA of Denominator<br><br>
+                
+                Assuming current values:<br>
+                <strong>Instantaneous TU = 904,933,828 / 995,237,100 = 0.909 (90.9%)</strong>
+            </div>
+        </div>
+
+        <div class="strategy-box">
+            <h3>Example 3: Rate Zone Determination</h3>
+            
+            <h4>With MAU = 0.833 and TU = 0.909:</h4>
+            
+            <h4>Check Rate Increase Condition:</h4>
+            <div class="equation-box">
+                4(TU - 1.02 × MAU) < (TU + 1.02 × MAU - 1)² - 1<br><br>
+                
+                Left side: 4(0.909 - 1.02 × 0.833) = 4(0.909 - 0.850) = <strong>0.236</strong><br><br>
+                
+                Right side: (0.909 + 0.850 - 1)² - 1 = (0.759)² - 1 = <strong>-0.424</strong><br><br>
+                
+                0.236 < -0.424? <strong>FALSE</strong>
+            </div>
+            
+            <h4>Check Rate Decrease Condition:</h4>
+            <div class="equation-box">
+                4(TU - MAU) > -(TU + MAU - 1)² + 1<br><br>
+                
+                Left side: 4(0.909 - 0.833) = 4(0.076) = <strong>0.304</strong><br><br>
+                
+                Right side: -(0.909 + 0.833 - 1)² + 1 = -(0.742)² + 1 = <strong>0.449</strong><br><br>
+                
+                0.304 > 0.449? <strong>FALSE</strong>
+            </div>
+            
+            <h4>Result:</h4>
+            <p><strong>Zone: NO CHANGE</strong> (Neither increase nor decrease conditions are met)</p>
+        </div>
+
+        <div class="warning-box">
+            <h3>📝 Key Notes for Calculations</h3>
+            <ul>
+                <li><strong>Borrower Inflator (b):</strong> Accounts for accumulated interest since pool inception</li>
+                <li><strong>T₁ values:</strong> t₀-equivalent debt for each loan (debt divided by borrower inflator)</li>
+                <li><strong>EMA Smoothing:</strong> In practice, use exponential moving averages, not instantaneous values</li>
+                <li><strong>Rate Changes:</strong> Only possible every 12 hours and in ±10% increments</li>
+                <li><strong>Zone Boundaries:</strong> The 1.02 coefficient ensures rates can always be raised if MAU exceeds ~98%</li>
+            </ul>
+        </div>
+
+        <div class="help-banner">
+            <div class="help-content">
+                <h3>📚 Need More Help?</h3>
+                <p>Visit our comprehensive FAQ section for additional support and detailed explanations</p>
+                <a href="https://faqs.ajna.finance" target="_blank" class="help-button">Visit Ajna FAQ →</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chart.js configuration for rate control zones
+        const ctx = document.getElementById('rateChart').getContext('2d');
+        let chart;
+
+        function createRateChart() {
+            const data = generateZoneData();
+            
+            chart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Increase Rates',
+                            data: data.increaseZone,
+                            backgroundColor: 'rgba(0, 100, 255, 0.8)', // Bright blue for increase
+                            pointRadius: 2
+                        },
+                        {
+                            label: 'Decrease Rates',
+                            data: data.decreaseZone,
+                            backgroundColor: 'rgba(220, 20, 60, 0.8)', // Crimson red for decrease
+                            pointRadius: 2
+                        },
+                        {
+                            label: 'No Change',
+                            data: data.noChangeZone,
+                            backgroundColor: 'rgba(255, 215, 0, 0.9)', // Gold - much more bold
+                            pointRadius: 2
+                        },
+                        {
+                            label: 'Current Position',
+                            data: [{x: 0.6, y: 0.7}],
+                            backgroundColor: 'rgba(0, 255, 255, 1)', // Bright cyan for contrast
+                            borderColor: 'rgba(255, 255, 255, 1)', // White border
+                            borderWidth: 2,
+                            pointRadius: 10,
+                            pointStyle: 'circle'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Ajna Interest Rate Control Zones',
+                            color: 'white' // White title text
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'MAU (Meaningful Actual Utilization)',
+                                color: 'white' // White axis title
+                            },
+                            ticks: {
+                                color: 'white' // White tick labels
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)' // Subtle white grid lines
+                            },
+                            min: 0,
+                            max: 1
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'TU (Target Utilization)',
+                                color: 'white' // White axis title
+                            },
+                            ticks: {
+                                color: 'white' // White tick labels
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)' // Subtle white grid lines
+                            },
+                            min: 0,
+                            max: 1
+                        }
+                    },
+                    backgroundColor: 'black' // Black chart background
+                }
+            });
+        }
+
+        function generateZoneData() {
+            const increaseZone = [];
+            const decreaseZone = [];
+            const noChangeZone = [];
+            
+            for (let mau = 0; mau <= 1; mau += 0.01) {
+                for (let tu = 0; tu <= 1; tu += 0.01) {
+                    const zone = determineZone(mau, tu);
+                    const point = {x: mau, y: tu};
+                    
+                    if (zone === 'increase') {
+                        increaseZone.push(point);
+                    } else if (zone === 'decrease') {
+                        decreaseZone.push(point);
+                    } else {
+                        noChangeZone.push(point);
+                    }
+                }
+            }
+            
+            return { increaseZone, decreaseZone, noChangeZone };
+        }
+
+        function determineZone(mau, tu) {
+            // Rate increase condition: 4(TU - 1.02 * MAU) < (TU + 1.02 * MAU - 1)² - 1
+            const increaseCondition = 4 * (tu - 1.02 * mau) < Math.pow(tu + 1.02 * mau - 1, 2) - 1;
+            
+            // Rate decrease condition: 4(TU - MAU) > -(TU + MAU - 1)² + 1
+            const decreaseCondition = 4 * (tu - mau) > -(Math.pow(tu + mau - 1, 2)) + 1;
+            
+            if (increaseCondition) {
+                return 'increase';
+            } else if (decreaseCondition) {
+                return 'decrease';
+            } else {
+                return 'no-change';
+            }
+        }
+
+        function updatePosition() {
+            const mau = parseFloat(document.getElementById('mauSlider').value);
+            const tu = parseFloat(document.getElementById('tuSlider').value);
+            
+            document.getElementById('mauValue').textContent = mau.toFixed(2);
+            document.getElementById('tuValue').textContent = tu.toFixed(2);
+            
+            const zone = determineZone(mau, tu);
+            const zoneElement = document.getElementById('currentZone');
+            
+            if (zone === 'increase') {
+                zoneElement.textContent = 'Increase Rates';
+                zoneElement.style.color = '#0064ff'; // Bright blue to match chart
+            } else if (zone === 'decrease') {
+                zoneElement.textContent = 'Decrease Rates';
+                zoneElement.style.color = '#dc143c'; // Crimson to match chart
+            } else {
+                zoneElement.textContent = 'No Change';
+                zoneElement.style.color = '#ffd700'; // Gold to match chart
+            }
+            
+            // Update chart position
+            chart.data.datasets[3].data = [{x: mau, y: tu}];
+            chart.update('none');
+        }
+
+        // Initialize chart and event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            createRateChart();
+            
+            document.getElementById('mauSlider').addEventListener('input', updatePosition);
+            document.getElementById('tuSlider').addEventListener('input', updatePosition);
+            
+            updatePosition();
+        });
+    </script>
+</body>
+</html>
