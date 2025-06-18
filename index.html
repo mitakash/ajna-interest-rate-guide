@@ -144,16 +144,25 @@
             z-index: 10;
         }
         
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
+            min-width: 600px; /* Ensures table doesn't get too cramped */
         }
         
         th, td {
             border: 1px solid #ddd;
             padding: 12px;
             text-align: left;
+            white-space: nowrap;
         }
         
         th {
@@ -208,6 +217,121 @@
             border-color: rgba(255, 255, 255, 0.5);
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Mobile responsive styles */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2em;
+                margin-bottom: 20px;
+            }
+            
+            h2 {
+                font-size: 1.4em;
+                margin-top: 30px;
+            }
+            
+            h3 {
+                font-size: 1.2em;
+                margin-top: 20px;
+            }
+            
+            .table-wrapper {
+                margin: 15px 0;
+                /* Add scrollbar styling for mobile */
+                scrollbar-width: thin;
+                scrollbar-color: #3498db #f1f1f1;
+            }
+            
+            .table-wrapper::-webkit-scrollbar {
+                height: 8px;
+            }
+            
+            .table-wrapper::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 4px;
+            }
+            
+            .table-wrapper::-webkit-scrollbar-thumb {
+                background: #3498db;
+                border-radius: 4px;
+            }
+            
+            th, td {
+                padding: 8px;
+                font-size: 0.9em;
+            }
+            
+            th {
+                font-size: 0.85em;
+                font-weight: 600;
+            }
+            
+            .strategy-box, .warning-box {
+                padding: 15px;
+                margin: 15px 0;
+            }
+            
+            .equation-box {
+                padding: 15px;
+                font-size: 1em;
+                margin: 10px 0;
+            }
+            
+            .chart-container {
+                padding: 15px;
+                margin: 15px 0;
+            }
+            
+            .zone-legend {
+                flex-direction: column;
+                gap: 15px;
+                align-items: center;
+            }
+            
+            .control-group {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .control-group label {
+                min-width: auto;
+                font-size: 0.9em;
+            }
+            
+            .control-group input {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+        
+        /* Very small mobile devices */
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            h2 {
+                font-size: 1.3em;
+            }
+            
+            th, td {
+                padding: 6px;
+                font-size: 0.8em;
+            }
+            
+            .strategy-box, .warning-box {
+                padding: 12px;
+            }
         }
     </style>
 </head>
@@ -308,6 +432,7 @@
 
         <h2>📋 Complete Strategy Matrix</h2>
         
+        <div class="table-wrapper">
         <table>
             <thead>
                 <tr>
@@ -349,6 +474,7 @@
                 </tr>
             </tbody>
         </table>
+        </div>
 
         <h2>🎯 Optimal Positioning Strategy</h2>
         
@@ -566,12 +692,96 @@
     </div>
 
     <script>
+        // Mobile detection function
+        function isMobile() {
+            return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+        
         // Chart.js configuration for rate control zones
         const ctx = document.getElementById('rateChart').getContext('2d');
         let chart;
 
         function createRateChart() {
             const data = generateZoneData();
+            const mobile = isMobile();
+            
+            // Configure chart options based on device type
+            const chartOptions = {
+                responsive: true,
+                devicePixelRatio: mobile ? 2 : window.devicePixelRatio, // Force higher pixel ratio on mobile
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Ajna Interest Rate Control Zones',
+                        color: 'white',
+                        font: {
+                            size: mobile ? 14 : 16
+                        }
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'MAU (Meaningful Actual Utilization)',
+                            color: 'white',
+                            font: {
+                                size: mobile ? 12 : 14
+                            }
+                        },
+                        ticks: {
+                            color: 'white',
+                            font: {
+                                size: mobile ? 10 : 12
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        min: 0,
+                        max: 1
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'TU (Target Utilization)',
+                            color: 'white',
+                            font: {
+                                size: mobile ? 12 : 14
+                            }
+                        },
+                        ticks: {
+                            color: 'white',
+                            font: {
+                                size: mobile ? 10 : 12
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        min: 0,
+                        max: 1
+                    }
+                },
+                backgroundColor: 'black'
+            };
+            
+            // Mobile-specific current position styling
+            const currentPositionDataset = {
+                label: 'Current Position',
+                data: [{x: 0.6, y: 0.7}],
+                backgroundColor: mobile ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 255, 255, 1)', // White on mobile, cyan on desktop
+                borderColor: mobile ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 1)', // White border on mobile, white on desktop
+                borderWidth: mobile ? 4 : 2,
+                pointRadius: 10, // 10px for both mobile and desktop
+                pointStyle: 'circle', // Circle shape for both mobile and desktop
+                pointHoverRadius: 12,
+                pointBorderWidth: mobile ? 4 : 2,
+                order: 0 // Force this dataset to render on top (lower order = higher priority)
+            };
             
             chart = new Chart(ctx, {
                 type: 'scatter',
@@ -580,79 +790,40 @@
                         {
                             label: 'Increase Rates',
                             data: data.increaseZone,
-                            backgroundColor: 'rgba(0, 100, 255, 0.8)', // Bright blue for increase
-                            pointRadius: 2
+                            backgroundColor: 'rgba(0, 100, 255, 0.8)',
+                            pointRadius: mobile ? 3 : 2,
+                            order: 3 // Render behind current position
                         },
                         {
                             label: 'Decrease Rates',
                             data: data.decreaseZone,
-                            backgroundColor: 'rgba(220, 20, 60, 0.8)', // Crimson red for decrease
-                            pointRadius: 2
+                            backgroundColor: 'rgba(220, 20, 60, 0.8)',
+                            pointRadius: mobile ? 3 : 2,
+                            order: 2 // Render behind current position
                         },
                         {
                             label: 'No Change',
                             data: data.noChangeZone,
-                            backgroundColor: 'rgba(255, 215, 0, 0.9)', // Gold - much more bold
-                            pointRadius: 2
+                            backgroundColor: 'rgba(255, 215, 0, 0.9)',
+                            pointRadius: mobile ? 3 : 2,
+                            order: 1 // Render behind current position
                         },
-                        {
-                            label: 'Current Position',
-                            data: [{x: 0.6, y: 0.7}],
-                            backgroundColor: 'rgba(0, 255, 255, 1)', // Bright cyan for contrast
-                            borderColor: 'rgba(255, 255, 255, 1)', // White border
-                            borderWidth: 2,
-                            pointRadius: 10,
-                            pointStyle: 'circle'
-                        }
+                        // Current position dataset LAST to render on top
+                        currentPositionDataset
                     ]
                 },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Ajna Interest Rate Control Zones',
-                            color: 'white' // White title text
-                        },
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'MAU (Meaningful Actual Utilization)',
-                                color: 'white' // White axis title
-                            },
-                            ticks: {
-                                color: 'white' // White tick labels
-                            },
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)' // Subtle white grid lines
-                            },
-                            min: 0,
-                            max: 1
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'TU (Target Utilization)',
-                                color: 'white' // White axis title
-                            },
-                            ticks: {
-                                color: 'white' // White tick labels
-                            },
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)' // Subtle white grid lines
-                            },
-                            min: 0,
-                            max: 1
-                        }
-                    },
-                    backgroundColor: 'black' // Black chart background
-                }
+                options: chartOptions
             });
+            
+            // Add additional mobile enhancements
+            if (mobile) {
+                // Add a pulsing animation effect for mobile
+                const originalUpdate = chart.update;
+                chart.update = function(mode) {
+                    originalUpdate.call(this, mode);
+                    // Add custom mobile optimizations here if needed
+                };
+            }
         }
 
         function generateZoneData() {
@@ -706,19 +877,51 @@
             
             if (zone === 'increase') {
                 zoneElement.textContent = 'Increase Rates';
-                zoneElement.style.color = '#0064ff'; // Bright blue to match chart
+                zoneElement.style.color = '#0064ff';
             } else if (zone === 'decrease') {
                 zoneElement.textContent = 'Decrease Rates';
-                zoneElement.style.color = '#dc143c'; // Crimson to match chart
+                zoneElement.style.color = '#dc143c';
             } else {
                 zoneElement.textContent = 'No Change';
-                zoneElement.style.color = '#ffd700'; // Gold to match chart
+                zoneElement.style.color = '#ffd700';
             }
             
-            // Update chart position
-            chart.data.datasets[3].data = [{x: mau, y: tu}];
+            // Update chart position with mobile-aware styling
+            const mobile = isMobile();
+            const currentPositionDataset = chart.data.datasets[3];
+            
+            // Update position
+            currentPositionDataset.data = [{x: mau, y: tu}];
+            
+            // Ensure mobile styling is maintained
+            if (mobile) {
+                currentPositionDataset.backgroundColor = 'rgba(255, 255, 255, 1)'; // White
+                currentPositionDataset.borderColor = 'rgba(255, 255, 255, 1)'; // White border
+                currentPositionDataset.pointRadius = 10; // Keep at 10px
+                currentPositionDataset.pointHoverRadius = 12; // Keep consistent
+                currentPositionDataset.borderWidth = 4;
+                currentPositionDataset.pointStyle = 'circle';
+                currentPositionDataset.order = 0; // Keep it on top
+            }
+            
             chart.update('none');
         }
+
+        // Handle window resize to reconfigure chart for mobile/desktop
+        function handleResize() {
+            if (chart) {
+                chart.destroy();
+                createRateChart();
+                updatePosition();
+            }
+        }
+
+        // Debounced resize handler
+        let resizeTimeout;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(handleResize, 250);
+        });
 
         // Initialize chart and event listeners
         document.addEventListener('DOMContentLoaded', function() {
